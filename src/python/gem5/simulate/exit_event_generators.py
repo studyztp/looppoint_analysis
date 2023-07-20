@@ -192,7 +192,7 @@ def looppoint_save_checkpoint_generator(
     True.
     """
     if exit_when_empty:
-        total_pairs = len(looppoint.get_targets())
+        total_pairs = len(set(looppoint.get_targets()))
     else:
         total_pairs = -1
         # it will never equal to 0 if exit_when_empty is false
@@ -208,6 +208,7 @@ def looppoint_save_checkpoint_generator(
                 looppoint.update_relatives_counts()
             m5.checkpoint((checkpoint_dir / f"cpt.Region{region}").as_posix())
         total_pairs -= 1
+        print(f"current total pairs left: {total_pairs}\n")
         yield False
-
+    print("exit event out of loop\n")
     yield True

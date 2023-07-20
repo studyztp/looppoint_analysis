@@ -875,7 +875,7 @@ class PcCountPair(ParamValue):
         return PcCountPair(self.pc, self.count)
 
     def __str__(self):
-        return "(%i,%i)" % (self.pc, self.count)
+        return "(%s,%i)" % (hex(self.pc), self.count)
 
     def __eq__(self, other):
         return self.pc == other.get_pc() and self.count == other.get_count()

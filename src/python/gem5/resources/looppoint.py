@@ -70,6 +70,12 @@ class LooppointRegionPC:
         """Returns the PcCountPair for this Region PC value."""
         return PcCountPair(self.get_pc(), self.get_global())
 
+    def get_regional_pc_count_pair(self) -> PcCountPair:
+        """Returns the PcCountPair for this Region PC value."""
+        if self.get_relative():
+            return PcCountPair(self.get_pc(), self.get_relative())
+        return None
+
     def update_relative_count(self, manager: PcCountTrackerManager) -> None:
         """Updates the relative count."""
         self._relative = int(
@@ -164,6 +170,16 @@ class LooppointSimulation:
             self.get_end().get_pc_count_pair(),
         ]
 
+    def get_regional_pc_count_pairs(self) -> List[PcCountPair]:
+        """Returns the PC count pairs for the start and end
+        LoopointRegionPCs."""
+        if self.get_start().get_regional_pc_count_pair():
+            return [
+                self.get_start().get_regional_pc_count_pair(),
+                self.get_end().get_regional_pc_count_pair(),
+            ]
+        return [self.get_end().get_regional_pc_count_pair()]
+
     def update_relatives_counts(
         self, manager: PcCountTrackerManager, include_start: bool = False
     ) -> None:
@@ -229,6 +245,11 @@ class LooppointRegion:
             pc_count_pairs.extend(self.get_warmup().get_pc_count_pairs())
         return pc_count_pairs
 
+    def get_regional_pc_count_pairs(self) -> List[PcCountPair]:
+        """Returns the PC count pairs for this Looppoint region."""
+        pc_count_pairs = self.get_simulation().get_regional_pc_count_pairs()
+        return pc_count_pairs
+
     def update_relatives_counts(self, manager: PcCountTrackerManager) -> None:
         """Updates the relative counds of this Looppoint region."""
         self.get_simulation().update_relatives_counts(
@@ -265,6 +286,7 @@ class Looppoint:
         self._regions = regions
         self._manager = PcCountTrackerManager()
         self._manager.targets = self.get_targets()
+        self._restore = False
 
     def set_target_region_id(self, region_id: Union[str, int]) -> None:
         """There are use-cases where we want to obtain a looppoint data
@@ -273,6 +295,9 @@ class Looppoint:
 
         if region_id not in self._regions:
             raise Exception(f"Region ID '{region_id}' cannot be found.")
+
+        if region_id:
+            self._restore = True
 
         to_remove = [rid for rid in self._regions if rid is not region_id]
         for rid in to_remove:
@@ -347,8 +372,15 @@ class Looppoint:
         PcCountPairs each region starts with as well as the relevant warmup
         intervals."""
         targets = []
-        for rid in self.get_regions():
-            targets.extend(self.get_regions()[rid].get_pc_count_pairs())
+
+        if self._restore:
+            for rid in self.get_regions():
+                targets.extend(
+                    self.get_regions()[rid].get_regional_pc_count_pairs()
+                )
+        else:
+            for rid in self.get_regions():
+                targets.extend(self.get_regions()[rid].get_pc_count_pairs())
 
         return targets
 
