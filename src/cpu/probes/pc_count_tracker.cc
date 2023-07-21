@@ -35,7 +35,10 @@ namespace gem5
 PcCountTracker::PcCountTracker(const PcCountTrackerParams &p)
     : ProbeListenerObject(p),
       cpuptr(p.core),
-      manager(p.ptmanager)
+      manager(p.ptmanager),
+      ifEnableInstCount(p.enableInstCount),
+      instCount(0),
+      validAddrRange(p.instCountvalidAddrRange)
 {
     if (!cpuptr || !manager) {
         fatal("%s is NULL", !cpuptr ? "CPU": "PcCountTrackerManager");
@@ -43,6 +46,15 @@ PcCountTracker::PcCountTracker(const PcCountTrackerParams &p)
     for (int i = 0; i < p.targets.size(); i++) {
         // initialize the set of targeting Program Counter addresses
         targetPC.insert(p.targets[i].getPC());
+    }
+
+    for (int i = 0; i < p.instCountexcludeAddrRanges.size(); i++){
+        excludedAddrRanges.push_back(
+            AddrRange(
+                p.instCountexcludeAddrRanges[i].start(),
+                p.instCountexcludeAddrRanges[i].end()
+            )
+        );
     }
 }
 
@@ -60,6 +72,9 @@ PcCountTracker::regProbeListeners()
 
 void
 PcCountTracker::checkPc(const Addr& pc) {
+    if (ifEnableInstCount) {
+        instCount += ifIncreaseInstCount(pc);
+    }
     if (targetPC.find(pc) != targetPC.end()) {
         // if the PC is one of the target PCs, then notify the
         // PcCounterTrackerManager by calling its `check_count` function
