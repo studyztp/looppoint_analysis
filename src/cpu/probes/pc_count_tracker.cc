@@ -48,6 +48,10 @@ PcCountTracker::PcCountTracker(const PcCountTrackerParams &p)
         targetPC.insert(p.targets[i].getPC());
     }
 
+    DPRINTF(PcCountTracker,
+            "inst count valid addrs from %li to %li\n",
+                 validAddrRange.start(),validAddrRange.end());
+
     for (int i = 0; i < p.instCountexcludeAddrRanges.size(); i++){
         excludedAddrRanges.push_back(
             AddrRange(
@@ -55,7 +59,11 @@ PcCountTracker::PcCountTracker(const PcCountTrackerParams &p)
                 p.instCountexcludeAddrRanges[i].end()
             )
         );
+        DPRINTF(PcCountTracker,
+            "inst count exclude addrs from %li to %li\n",
+                 excludedAddrRanges[i].start(),excludedAddrRanges[i].end());
     }
+
 }
 
 void
