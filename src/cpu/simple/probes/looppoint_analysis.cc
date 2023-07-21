@@ -219,7 +219,10 @@ LooppointAnalysisManager::LooppointAnalysisManager(
     : SimObject(p),
     regionLength(p.regionLen),
     globalInstCounter(0),
-    mostRecentPC(0)
+    mostRecentPC(0),
+    ifRaiseExitEvent(p.raiseExitEvent)
+
+
 {
     DPRINTF(LooppointAnalysis, "The region length is %i\n", regionLength);
 }
@@ -239,18 +242,20 @@ LooppointAnalysisManager::countPc(Addr pc, int instCount)
     mostRecentPC = pc;
 
     globalInstCounter += instCount;
-    if (globalInstCounter >= regionLength) {
-        exitSimLoopNow(
-            "simpoint starting point found");
-        // using exitSimLoop instead of exitSimLoopNow because using switch
-        // process from KVM to ATOMIC will raise timing error such as
-        // when < getCurTick()
-        // If not using KVM, it can use exitSimLoopNow to exit with high
-        // proirity
-        // Using exitSimLoop with curTick happens to generate more exit events
-        // than it should be because it doesn't exit the simulation at the
-        // moment, so some calls of countPc() goes through before the Python
-        // script clear the globalInstCounter
+    if (ifRaiseExitEvent) {
+        if (globalInstCounter >= regionLength) {
+            exitSimLoopNow(
+                "simpoint starting point found");
+            // using exitSimLoop instead of exitSimLoopNow because using switch
+            // process from KVM to ATOMIC will raise timing error such as
+            // when < getCurTick()
+            // If not using KVM, it can use exitSimLoopNow to exit with high
+            // proirity
+            // Using exitSimLoop with curTick happens to generate more exit
+            // events than it should be because it doesn't exit the simulation
+            // at the moment, so some calls of countPc() goes through before
+            // the Python script clear the globalInstCounter
+        }
     }
 }
 

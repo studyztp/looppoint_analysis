@@ -97,6 +97,15 @@ class LooppointAnalysisManager(SimObject):
         PyBindMethod("getGlobalInstCounter"),
         PyBindMethod("clearGlobalInstCounter"),
         PyBindMethod("getGlobalMostRecentPC"),
+        PyBindMethod("enableRaisingExitEvent"),
+        PyBindMethod("disableRaisingExitEvent"),
     ]
 
     regionLen = Param.Int(100000000, "each region's instruction length")
+
+    raiseExitEvent = Param.Bool(
+        True,
+        "if the manager should raise an exit"
+        " event when the global instruction count is higher "
+        "than the region length",
+    )

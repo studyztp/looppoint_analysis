@@ -196,6 +196,8 @@ class LooppointAnalysisManager : public SimObject
 
     Addr mostRecentPC;
 
+    bool ifRaiseExitEvent;
+
   public:
 
     std::unordered_map<Addr, int>
@@ -235,6 +237,18 @@ class LooppointAnalysisManager : public SimObject
     getGlobalMostRecentPC()
     {
       return mostRecentPC;
+    }
+
+    void
+    enableRaisingExitEvent()
+    {
+      ifRaiseExitEvent = true;
+    }
+
+    void
+    disableRaisingExitEvent()
+    {
+      ifRaiseExitEvent = false;
     }
 
 };
